@@ -5,11 +5,7 @@ from messenger.models import Message
 
 
 class MessageFilter(filters.FilterSet):
-    tags = NumberInFilter(
-        field_name="tags__id",
-        lookup_expr="in",
-        distinct=True
-    )
+    tags = NumberInFilter(field_name="tags__id", lookup_expr="in", distinct=True)
 
     class Meta:
         model = Message

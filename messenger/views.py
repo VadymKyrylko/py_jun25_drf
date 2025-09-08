@@ -1,9 +1,12 @@
-from rest_framework import status, filters
-from django_filters import rest_framework as rest_filters
-from rest_framework.decorators import api_view
 from django.core.exceptions import ValidationError
+from django_filters import rest_framework as rest_filters
+from rest_framework import filters, status
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.decorators import api_view
+from rest_framework.generics import GenericAPIView
 from rest_framework.mixins import ListModelMixin
 from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -12,9 +15,12 @@ from rest_framework.viewsets import ModelViewSet
 from base.filter_backends import IsOwnerFilterBackend
 from messenger.filters import MessageFilter
 from messenger.models import Message, Tag
-from messenger.serializers import MessageSerializer, TagSerializer, MessageDetailSerializer, MessageListSerializer
-from rest_framework.generics import GenericAPIView
-
+from messenger.serializers import (
+    MessageDetailSerializer,
+    MessageListSerializer,
+    MessageSerializer,
+    TagSerializer,
+)
 
 # @api_view(["GET", "POST"])
 # def message_list(request: Request) -> Response:
@@ -131,13 +137,10 @@ class MessageViewSet(ModelViewSet):
     filterset_class = MessageFilter
     ordering_fields = ("created_at",)
     pagination_class = LimitOffsetPagination
+    permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
-        return Message.objects.select_related(
-            "user"
-        ).prefetch_related(
-            "tags"
-        )
+        return Message.objects.select_related("user").prefetch_related("tags")
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -147,6 +150,9 @@ class MessageViewSet(ModelViewSet):
             return MessageDetailSerializer
 
         return MessageSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
 
 class TagViewSet(ModelViewSet):

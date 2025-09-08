@@ -10,4 +10,4 @@ class CreatableSlugRelatedField(SlugRelatedField):
 
             return obj
         except (TypeError, ValueError):
-            self.fail('invalid')
+            self.fail("invalid")

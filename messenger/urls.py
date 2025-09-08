@@ -10,4 +10,3 @@ router.register("messages", MessageViewSet, basename="message")
 router.register("tags", TagViewSet, basename="tag")
 
 urlpatterns = router.urls
-

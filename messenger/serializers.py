@@ -22,38 +22,21 @@ class UserSerializer(serializers.ModelSerializer):
 
 class MessageSerializer(serializers.ModelSerializer):
     tags = CreatableSlugRelatedField(
-        slug_field="name",
-        many=True,
-        queryset=Tag.objects.all(),
-        required=False
+        slug_field="name", many=True, queryset=Tag.objects.all(), required=False
     )
 
     class Meta:
         model = Message
-        fields = (
-            "id",
-            "text",
-            "created_at",
-            "user",
-            "tags"
-        )
+        fields = ("id", "text", "created_at", "tags", "user")
+        read_only_fields = ("id", "created_at", "user")
 
 
 class MessageListSerializer(MessageSerializer):
-    user_username = serializers.CharField(
-        source="user.username",
-        read_only=True
-    )
+    user_username = serializers.CharField(source="user.username", read_only=True)
 
     class Meta:
         model = Message
-        fields = (
-            "id",
-            "text_preview",
-            "created_at",
-            "user_username",
-            "tags"
-        )
+        fields = ("id", "text_preview", "created_at", "user_username", "tags")
 
 
 class MessageDetailSerializer(MessageSerializer):

@@ -8,9 +8,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-INTERNAL_IPS = [
-    "127.0.0.1"
-]
+INTERNAL_IPS = ["127.0.0.1"]
 
 
 INSTALLED_APPS = [
@@ -21,6 +19,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "rest_framework.authtoken",
     # third party
     "rest_framework",
     "debug_toolbar",
@@ -116,8 +115,11 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "accounts.User"
 
 REST_FRAMEWORK = {
-     'DEFAULT_FILTER_BACKENDS': [
-         'django_filters.rest_framework.DjangoFilterBackend',
-     ],
-    'EXCEPTION_HANDLER': 'base.exception_handlers.custom_exception_handler'
+    "DEFAULT_FILTER_BACKENDS": [
+        "django_filters.rest_framework.DjangoFilterBackend",
+    ],
+    "EXCEPTION_HANDLER": "base.exception_handlers.custom_exception_handler",
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication"
+    ],
 }
