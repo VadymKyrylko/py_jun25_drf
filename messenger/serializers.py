@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
 from base.serializers import CreatableSlugRelatedField
-from messenger.models import Message, Tag
+from messenger.models import Message, Tag, Like
 
 User = get_user_model()
 
@@ -27,17 +27,43 @@ class MessageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Message
-        fields = ("id", "text", "created_at", "tags", "user")
+        fields = ("id", "text", "created_at", "tags", "user", "image")
         read_only_fields = ("id", "created_at", "user")
 
 
 class MessageListSerializer(MessageSerializer):
     user_username = serializers.CharField(source="user.username", read_only=True)
+    likes_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Message
-        fields = ("id", "text_preview", "created_at", "user_username", "tags")
+        fields = (
+            "id",
+            "text_preview",
+            "created_at",
+            "user_username",
+            "tags",
+            "image",
+            "likes_count",
+        )
+
+    def get_likes_count(self, obj):
+        return obj.user_likes.count()
+
+
+class LikeSerializer(serializers.ModelSerializer):
+    user = serializers.CharField(source="user.username", read_only=True)
+
+    class Meta:
+        model = Like
+        fields = ("id", "user", "created_at")
+        read_only_fields = ("id", "created_at", "user")
 
 
 class MessageDetailSerializer(MessageSerializer):
     user = UserSerializer(read_only=True)
+    likes = LikeSerializer(many=True, read_only=True)
+
+    class Meta(MessageSerializer.Meta):
+        model = Message
+        fields = ("id", "text", "created_at", "tags", "user", "image", "likes")

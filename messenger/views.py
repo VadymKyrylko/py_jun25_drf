@@ -2,7 +2,7 @@ from django.core.exceptions import ValidationError
 from django_filters import rest_framework as rest_filters
 from rest_framework import filters, status
 from rest_framework.authentication import TokenAuthentication
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, action
 from rest_framework.generics import GenericAPIView
 from rest_framework.mixins import ListModelMixin
 from rest_framework.pagination import LimitOffsetPagination
@@ -140,7 +140,11 @@ class MessageViewSet(ModelViewSet):
     permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
-        return Message.objects.select_related("user").prefetch_related("tags")
+        return (
+            Message.objects.select_related("user")
+            .prefetch_related("tags")
+            .prefetch_related("user_likes")
+        )
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -153,6 +157,20 @@ class MessageViewSet(ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+    @action(detail=True, methods=["POST"], serializer_class=None)
+    def like(self, request, pk=None):
+        message = self.get_object()
+        user = request.user
+
+        if message.user_likes.filter(id=user.id).exists():
+            message.user_likes.remove(user)
+        else:
+            message.user_likes.add(user)
+
+        serializer = MessageListSerializer(message)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class TagViewSet(ModelViewSet):

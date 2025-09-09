@@ -27,6 +27,8 @@ INSTALLED_APPS = [
     # internal
     "accounts",
     "messenger",
+    # cleanup must be last
+    "django_cleanup.apps.CleanupConfig",
 ]
 
 MIDDLEWARE = [
@@ -120,6 +122,10 @@ REST_FRAMEWORK = {
     ],
     "EXCEPTION_HANDLER": "base.exception_handlers.custom_exception_handler",
     "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.TokenAuthentication"
+        "rest_framework.authentication.SessionAuthentication",
+        "rest_framework.authentication.TokenAuthentication",
     ],
 }
+
+MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_URL = "/media/"
