@@ -160,6 +160,9 @@ class MessageViewSet(ModelViewSet):
 
     @action(detail=True, methods=["POST"], serializer_class=None)
     def like(self, request, pk=None):
+        """
+        Endpoint for liking a message.
+        """
         message = self.get_object()
         user = request.user
 
