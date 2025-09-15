@@ -1,16 +1,17 @@
 from django.core.exceptions import ValidationError
 from django_filters import rest_framework as rest_filters
+from drf_spectacular.utils import extend_schema
 from rest_framework import filters, status
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import api_view, action
 from rest_framework.generics import GenericAPIView
 from rest_framework.mixins import ListModelMixin
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.viewsets import ModelViewSet
+from base.viewsets import ModelViewSet
 
 from base.filter_backends import IsOwnerFilterBackend
 from messenger.filters import MessageFilter
@@ -128,6 +129,9 @@ from messenger.serializers import (
 
 # ----------------------------------------------------ViewSets---------------------------------------------------
 class MessageViewSet(ModelViewSet):
+    """
+    Endpoints for Message item
+    """
     filter_backends = (
         filters.SearchFilter,
         rest_filters.DjangoFilterBackend,
@@ -137,7 +141,24 @@ class MessageViewSet(ModelViewSet):
     filterset_class = MessageFilter
     ordering_fields = ("created_at",)
     pagination_class = LimitOffsetPagination
+
+    serializer_class = MessageSerializer
+    request_action_serializer_classes = {
+        "create": MessageSerializer,
+        "list": MessageListSerializer,
+        "retrieve": MessageDetailSerializer,
+    }
+
+    response_action_serializer_classes = {
+        "create": MessageListSerializer,
+        "update": MessageDetailSerializer,
+        "partial_update": MessageDetailSerializer
+    }
+
     permission_classes = (IsAuthenticated,)
+    action_permission_classes = {
+        "destroy": (IsAdminUser,)
+    }
 
     def get_queryset(self):
         return (
@@ -146,17 +167,8 @@ class MessageViewSet(ModelViewSet):
             .prefetch_related("user_likes")
         )
 
-    def get_serializer_class(self):
-        if self.action == "list":
-            return MessageListSerializer
-
-        if self.action == "retrieve":
-            return MessageDetailSerializer
-
-        return MessageSerializer
-
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        return serializer.save(user=self.request.user)
 
     @action(detail=True, methods=["POST"], serializer_class=None)
     def like(self, request, pk=None):
