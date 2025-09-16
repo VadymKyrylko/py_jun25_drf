@@ -36,7 +36,7 @@ class GenericAPIView(generics.GenericAPIView):
             return serializer_class(*args, **kwargs)
 
     def get_request_serializer_class_or_none(self) -> Optional[Type[BaseSerializer]]:
-         return self.request_serializer_class
+        return self.request_serializer_class
 
     def get_request_serializer_context(self):
         return self.get_serializer_context()
