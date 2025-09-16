@@ -1,4 +1,6 @@
 from django.core.exceptions import ValidationError
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page, never_cache
 from django_filters import rest_framework as rest_filters
 from drf_spectacular.utils import extend_schema
 from rest_framework import filters, status
@@ -132,6 +134,7 @@ class MessageViewSet(ModelViewSet):
     """
     Endpoints for Message item
     """
+
     filter_backends = (
         filters.SearchFilter,
         rest_filters.DjangoFilterBackend,
@@ -145,20 +148,18 @@ class MessageViewSet(ModelViewSet):
     serializer_class = MessageSerializer
     request_action_serializer_classes = {
         "create": MessageSerializer,
-        "list": MessageListSerializer,
         "retrieve": MessageDetailSerializer,
     }
 
     response_action_serializer_classes = {
         "create": MessageListSerializer,
         "update": MessageDetailSerializer,
-        "partial_update": MessageDetailSerializer
+        "partial_update": MessageDetailSerializer,
+        "list": MessageListSerializer,
     }
 
     permission_classes = (IsAuthenticated,)
-    action_permission_classes = {
-        "destroy": (IsAdminUser,)
-    }
+    action_permission_classes = {"destroy": (IsAdminUser,)}
 
     def get_queryset(self):
         return (
@@ -188,6 +189,13 @@ class MessageViewSet(ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+@method_decorator(cache_page(60 * 15, key_prefix="tag-list"), name="list")
 class TagViewSet(ModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
+    request_serializer_class = TagSerializer
+    response_serializer_class = TagSerializer
+
+    # @method_decorator(cache_page(60 * 15))
+    # def list(self, _request, *_args, **_kwargs):
+    #     return super().list(_request, *_args, **_kwargs)
