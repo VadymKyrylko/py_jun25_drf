@@ -145,9 +145,10 @@ class MessageViewSet(ModelViewSet):
     ordering_fields = ("created_at",)
     pagination_class = LimitOffsetPagination
 
-    serializer_class = MessageSerializer
     request_action_serializer_classes = {
         "create": MessageSerializer,
+        "update": MessageSerializer,
+        "partial_update": MessageSerializer,
         "retrieve": MessageDetailSerializer,
     }
 
